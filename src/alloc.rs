@@ -86,7 +86,11 @@ pub(crate) fn alloc_1gb_hugepage(c: &Config) -> Option<MemMap> {
         )
     };
 
-    Some(MemMap::new(mem_attack as *mut u8, HUGE_PAGE_SIZE<<9, c))
+    if mem_attack == libc::MAP_FAILED {
+        return None;
+    }
+
+    Some(MemMap::new(mem_attack as *mut u8, HUGE_PAGE_SIZE << 9, c))
 }
 
 pub(crate) fn alloc_2mb_hugepage(c: &Config) -> Option<MemMap> {
@@ -95,11 +99,19 @@ pub(crate) fn alloc_2mb_hugepage(c: &Config) -> Option<MemMap> {
             ptr::null_mut(),
             HUGE_PAGE_SIZE,
             libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_SHARED | libc::MAP_ANONYMOUS | libc::MAP_HUGETLB | libc::MAP_POPULATE | MAP_HUGE_2MB,
+            libc::MAP_SHARED
+                | libc::MAP_ANONYMOUS
+                | libc::MAP_HUGETLB
+                | libc::MAP_POPULATE
+                | MAP_HUGE_2MB,
             -1,
             0,
         )
     };
+
+    if mem_attack == libc::MAP_FAILED {
+        return None;
+    }
 
     Some(MemMap::new(mem_attack as *mut u8, HUGE_PAGE_SIZE, c))
 }
